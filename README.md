@@ -7,6 +7,8 @@ The server skeleton, tools, data and a self-check script are provided. The agent
 **Allowed:** documentation, web search, AI coding assistants. You will be asked to explain any code you
 keep, so don't keep what you can't explain. Prioritise a working, understood agent over a big one.
 
+How you will be evaluated is in [rubric.md](rubric.md). Read it first.
+
 ## The goal
 
 Users chat with the agent about their reservations. The agent must:
