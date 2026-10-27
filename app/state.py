@@ -9,6 +9,8 @@ class AgentState(TypedDict, total=False):
     facts: list[str]
     pending_action: dict[str, Any] | None
     final_response: str
+    toolbox: Any
+    loop_count: int
 
 
 @dataclass

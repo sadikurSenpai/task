@@ -4,7 +4,10 @@ from .policy import load_policy
 from .session import Session
 from .state import AgentState, get_session_state
 
-# Initialize the LangGraph with dynamic mtime-aware policy loader (FR1)
+# Validate policy file exists and is readable at startup (FR1)
+load_policy()
+
+# Initialize the LangGraph with dynamic mtime-aware policy loader
 _GRAPH = build_graph(policy=load_policy)
 
 
@@ -19,6 +22,8 @@ def respond(session: Session, user_message: str) -> str:
         "facts": list(session_state.facts),
         "pending_action": session_state.pending_action,
         "final_response": "",
+        "toolbox": session.toolbox,
+        "loop_count": 0,
     }
 
     result = _GRAPH.invoke(initial_state)

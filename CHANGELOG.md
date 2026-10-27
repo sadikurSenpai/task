@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-27 14:08 · Stage 2 (bug fixes and robustness) · AI
+- **What:** Added `run_unhandled_tool` node in `app/graph.py` to reply to unsupported/write tools with `{"error": "This action is not available yet"}` and loop back to the model; fixed `_extract_facts_from_tool` to only record facts on successful lookups and read `"reservations"` (aligning with `db.json`); updated system prompt in `app/prompt.py` with tool scope and exact values preservation; eagerly called `load_policy()` at import in `app/agent.py`; and updated `tests/test_stage2_tools.py` with `yusuf_li_4428`, unknown ID fact suppression test, and unhandled tool recovery test.
+- **Why:** Prevent OpenAI 400 errors on unhandled tool calls, prevent recording facts from failed lookups, ensure missing policy crashes at server startup, and keep unit test suite green against actual database fixtures.
+
+## 2026-10-27 14:00 · Stage 2 (tools and human transfer) · AI
+- **What:** Implemented tool calling and read/transfer workflow in `app/graph.py`, updated `AgentState` in `app/state.py` to hold session tools and loop count, expanded system prompt guidelines in `app/prompt.py` (single-tool execution, accurate tool error reporting for unknown IDs, transfer for out-of-scope requests), wired `session.toolbox` in `app/agent.py`, and added unit tests in `tests/test_stage2_tools.py`.
+- **Why:** Satisfies Stage 2 requirements (FR4: lookup tools, FR5: honest reporting of missing IDs without hallucination, FR6: first-tool-only enforcement and no simultaneous text reply, FR7: transfer to human agents with exact policy message).
+
 ## 2026-10-27 13:49 · Stage 1 (prompt refinement) · AI
 - **What:** Refined system prompt in `app/prompt.py` to provide concrete citation examples without angle brackets (`Section: Cancel flight`, `Section: Book flight > Checked bag allowance`) and instructed the agent to briefly offer help with supported topics (reservations, cancellations, compensation) when the policy does not cover a question.
 - **Why:** Prevent the model from outputting literal `<...>` placeholder brackets in citations and improve user experience on uncovered questions.
