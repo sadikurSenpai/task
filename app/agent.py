@@ -4,9 +4,8 @@ from .policy import load_policy
 from .session import Session
 from .state import AgentState, get_session_state
 
-# Read policy once from disk at startup (FR1)
-POLICY_TEXT = load_policy()
-_GRAPH = build_graph(policy=POLICY_TEXT)
+# Initialize the LangGraph with dynamic mtime-aware policy loader (FR1)
+_GRAPH = build_graph(policy=load_policy)
 
 
 def respond(session: Session, user_message: str) -> str:

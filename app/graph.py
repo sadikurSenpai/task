@@ -10,7 +10,7 @@ from .state import AgentState
 
 def create_call_model_node(
     complete_fn: Callable[..., Any],
-    policy: str,
+    policy: str | Callable[[], str],
 ) -> Callable[[AgentState], dict[str, Any]]:
     """Create the call_model node with injected LLM and policy."""
 
@@ -19,8 +19,10 @@ def create_call_model_node(
         facts = state.get("facts", [])
         pending = state.get("pending_action")
 
+        current_policy = policy() if callable(policy) else policy
+
         full_messages = build_messages(
-            policy=policy,
+            policy=current_policy,
             facts=facts,
             pending=pending,
             history=history,
@@ -42,17 +44,17 @@ def create_call_model_node(
 def build_graph(
     complete_fn: Callable[..., Any] | None = None,
     toolbox: Any = None,
-    policy: str | None = None,
+    policy: str | Callable[[], str] | None = None,
 ) -> Any:
     """Build and compile the LangGraph StateGraph.
 
     All dependencies are injected with sensible defaults for production.
     """
     complete_callable = complete_fn or default_complete
-    policy_text = policy if policy is not None else load_policy()
+    policy_source = policy if policy is not None else load_policy
 
     builder = StateGraph(AgentState)
-    builder.add_node("call_model", create_call_model_node(complete_callable, policy_text))
+    builder.add_node("call_model", create_call_model_node(complete_callable, policy_source))
 
     builder.add_edge(START, "call_model")
     builder.add_edge("call_model", END)

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-27 13:46 · Stage 1 (test configuration) · AI
+- **What:** Created `pytest.ini` with `pythonpath = .`.
+- **Why:** Allows running plain `pytest -q` directly from the repo root without needing `python -m`.
+
 ## 2026-10-27 13:36 · Stage 1 (grounded answers boilerplate) · AI
 - **What:** Implemented `app/policy.py` (runtime file loader), `app/state.py` (LangGraph state and session store), `app/prompt.py` (prompt builder with citation and unmentioned rules), `app/graph.py` (LangGraph StateGraph `START -> call_model -> END`), `app/agent.py` (`respond()` pipeline), and unit tests (`tests/test_policy.py`, `tests/test_prompt.py`, `tests/test_stage1_graph.py`).
 - **Why:** Establish the grounded answer baseline for Stage 1 per `PLAN.md` with dependency-injected LLM and policy for pure unit testability.
