@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-27 13:49 · Stage 1 (prompt refinement) · AI
+- **What:** Refined system prompt in `app/prompt.py` to provide concrete citation examples without angle brackets (`Section: Cancel flight`, `Section: Book flight > Checked bag allowance`) and instructed the agent to briefly offer help with supported topics (reservations, cancellations, compensation) when the policy does not cover a question.
+- **Why:** Prevent the model from outputting literal `<...>` placeholder brackets in citations and improve user experience on uncovered questions.
+
 ## 2026-10-27 13:46 · Stage 1 (test configuration) · AI
 - **What:** Created `pytest.ini` with `pythonpath = .`.
 - **Why:** Allows running plain `pytest -q` directly from the repo root without needing `python -m`.

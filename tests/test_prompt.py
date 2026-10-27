@@ -15,7 +15,8 @@ def test_build_system_prompt_structure():
     assert "user_id: 123" in prompt
     assert "[PENDING ACTION]" in prompt
     assert "cancel_reservation" in prompt
-    assert 'Section: <heading>' in prompt
+    assert "Section: Cancel flight" in prompt
+    assert "Section: Book flight > Checked bag allowance" in prompt
     assert "the policy doesn't say" in prompt
 
 
