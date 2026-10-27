@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-27 13:36 · Stage 1 (grounded answers boilerplate) · AI
+- **What:** Implemented `app/policy.py` (runtime file loader), `app/state.py` (LangGraph state and session store), `app/prompt.py` (prompt builder with citation and unmentioned rules), `app/graph.py` (LangGraph StateGraph `START -> call_model -> END`), `app/agent.py` (`respond()` pipeline), and unit tests (`tests/test_policy.py`, `tests/test_prompt.py`, `tests/test_stage1_graph.py`).
+- **Why:** Establish the grounded answer baseline for Stage 1 per `PLAN.md` with dependency-injected LLM and policy for pure unit testability.
+
 ## 2026-10-27 13:16 · Stage 0 (planning) · AI (decisions by me)
 - **What:** Added `PLAN.md`: functional requirements, prompt layout, LangGraph graph (nodes and edges), modules, stage "done when" criteria.
 - **Why:** Records the agreed architecture (custom LangGraph `StateGraph`, policy loaded at runtime, facts-first + policy-check + explicit-"yes" safeguards) as the spec before any code.
