@@ -167,52 +167,56 @@ def test_first_tool_call_only_enforced():
     assert tb.log[0]["tool"] == "get_user_details"
 
 
-def test_unhandled_tool_call_gets_tool_reply_and_non_empty_answer():
-    """Verify that calling an unhandled tool (e.g. cancel_reservation before Stage 3)
-
-    gets a tool reply with error and model produces a non-empty final response.
-    """
-    tb = ToolBox()
-    call_count = 0
+def _run_single_tool_attempt(tool_name: str, args: dict, final_text: str, tb: ToolBox):
+    """Fake LLM calls one tool, then answers. Returns (result, tool_reply_content)."""
+    seen = {}
 
     def fake_complete(messages: list[dict], tools=None):
-        nonlocal call_count
-        call_count += 1
-        if call_count == 1:
-            # Model attempts an unhandled tool call
+        if "tool_reply" not in seen and messages[-1]["role"] != "tool":
             tc = SimpleNamespace(
-                id="call_write_1",
-                function=SimpleNamespace(
-                    name="cancel_reservation",
-                    arguments=json.dumps({"reservation_id": "FU5FSY"}),
-                ),
+                id="call_1",
+                function=SimpleNamespace(name=tool_name, arguments=json.dumps(args)),
             )
             return SimpleNamespace(content=None, tool_calls=[tc])
-        else:
-            # Check that the tool reply message was properly appended
-            last_msg = messages[-1]
-            assert last_msg["role"] == "tool"
-            assert last_msg["tool_call_id"] == "call_write_1"
-            assert "This action is not available yet" in last_msg["content"]
-            return SimpleNamespace(content="Cancellation is not available yet.", tool_calls=None)
+        last_msg = messages[-1]
+        assert last_msg["role"] == "tool"
+        assert last_msg["tool_call_id"] == "call_1"
+        seen["tool_reply"] = last_msg["content"]
+        return SimpleNamespace(content=final_text, tool_calls=None)
 
     graph = build_graph(complete_fn=fake_complete, toolbox=tb, policy="Sample policy")
     state: AgentState = {
-        "session_id": "s_unhandled",
-        "messages": [{"role": "user", "content": "Cancel my reservation FU5FSY"}],
+        "session_id": "s_single_tool",
+        "messages": [{"role": "user", "content": "please do it"}],
         "facts": [],
         "pending_action": None,
         "final_response": "",
         "toolbox": tb,
         "loop_count": 0,
     }
-
     result = graph.invoke(state)
+    return result, seen["tool_reply"]
 
-    assert result["final_response"] == "Cancellation is not available yet."
-    # Verify OpenAI protocol: assistant message with tool_calls is followed by tool message
-    roles = [m["role"] for m in result["messages"]]
-    assert roles == ["user", "assistant", "tool", "assistant"]
-    assert result["messages"][1]["tool_calls"][0]["function"]["name"] == "cancel_reservation"
-    assert result["messages"][2]["role"] == "tool"
-    assert result["messages"][3]["content"] == "Cancellation is not available yet."
+
+def test_unknown_tool_call_gets_tool_reply_and_non_empty_answer():
+    """A tool we don't support (e.g. booking) still gets a tool reply, so the history stays valid."""
+    tb = ToolBox()
+    result, tool_reply = _run_single_tool_attempt("book_flight", {}, "I can't book flights.", tb)
+
+    assert "This action is not available yet" in tool_reply
+    assert result["final_response"] == "I can't book flights."
+    # OpenAI protocol: assistant tool_calls message is followed by a tool message
+    assert [m["role"] for m in result["messages"]] == ["user", "assistant", "tool", "assistant"]
+
+
+def test_write_tool_without_lookup_is_blocked_by_facts_first():
+    """Stage 3: cancel_reservation on an id never looked up is blocked; nothing is cancelled."""
+    tb = ToolBox()
+    result, tool_reply = _run_single_tool_attempt(
+        "cancel_reservation", {"reservation_id": "FU5FSY"}, "I need to look that up first.", tb
+    )
+
+    assert "Facts-first check failed" in tool_reply
+    assert tb.cancelled() == []
+    assert result["final_response"] == "I need to look that up first."
+    assert [m["role"] for m in result["messages"]] == ["user", "assistant", "tool", "assistant"]

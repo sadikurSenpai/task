@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-27 14:15 · Stage 3 (safe actions and explicit confirmation) · AI
+- **What:** Implemented `app/confirmation.py` (`PendingAction`, `is_explicit_confirmation`, `describe_action`), `app/guards.py` (`check_facts_first`, `parse_policy_verdict` with fail-closed parsing, `build_policy_check_prompt`), and updated `app/graph.py` with complete Stage 3 nodes (`route_turn`, `facts_check`, `policy_check`, `ask_confirmation`, `execute_write`). Added comprehensive unit tests in `tests/test_stage3_safeguards.py`.
+- **Why:** Enforces FR8 (facts-first lookup check before write tool proposal), FR9 (code-gated structured LLM policy compliance check), FR10 (explicit confirmation listing exact action before execution), and FR11 (user pressure resistance). Write tools cannot execute on the first turn and require policy approval plus an explicit "yes" in the subsequent turn.
+
 ## 2026-10-27 14:08 · Stage 2 (bug fixes and robustness) · AI
 - **What:** Added `run_unhandled_tool` node in `app/graph.py` to reply to unsupported/write tools with `{"error": "This action is not available yet"}` and loop back to the model; fixed `_extract_facts_from_tool` to only record facts on successful lookups and read `"reservations"` (aligning with `db.json`); updated system prompt in `app/prompt.py` with tool scope and exact values preservation; eagerly called `load_policy()` at import in `app/agent.py`; and updated `tests/test_stage2_tools.py` with `yusuf_li_4428`, unknown ID fact suppression test, and unhandled tool recovery test.
 - **Why:** Prevent OpenAI 400 errors on unhandled tool calls, prevent recording facts from failed lookups, ensure missing policy crashes at server startup, and keep unit test suite green against actual database fixtures.

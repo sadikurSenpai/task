@@ -11,6 +11,9 @@ class AgentState(TypedDict, total=False):
     final_response: str
     toolbox: Any
     loop_count: int
+    proposed_action: dict[str, Any] | None
+    facts_ok: bool
+    policy_ok: bool
 
 
 @dataclass

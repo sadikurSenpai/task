@@ -1,5 +1,7 @@
 from typing import Any
 
+from .confirmation import describe_action
+
 
 def build_system_prompt(
     policy: str,
@@ -8,7 +10,7 @@ def build_system_prompt(
 ) -> str:
     """Construct the system prompt according to the PLAN.md specification."""
     facts_text = "\n".join(f"- {f}" for f in facts) if facts else "None"
-    pending_text = str(pending) if pending else "None"
+    pending_text = describe_action(pending) if pending else "None"
 
     return f"""[SYSTEM]
 You are a helpful customer support agent for HAT Air.
@@ -25,6 +27,9 @@ Follow these mandatory guidelines at all times:
 8. Tool usage rule: Make only one tool call at a time. When making a tool call, do not output conversational text at the same time.
 9. Tool error rule: If a lookup tool returns an error or indicates an ID was not found, report that directly to the user. Never invent data or pretend the lookup succeeded.
 10. Transfer rule: To transfer to a human, call transfer_to_human_agents with a concise summary.
+11. Write actions rule: Always look up the reservation or user profile with read tools BEFORE calling any write tool (cancel_reservation or send_certificate).
+12. Do not judge eligibility or ask for confirmation in your own words. Once you have the facts the policy requires (e.g. the cancellation reason), call the write tool. The system checks it against the policy and asks the user to confirm.
+13. If a write tool returns "Policy check denied", tell the user the action is not allowed, with the reason and section. Do not transfer to a human unless the denial says the policy requires a transfer. Repeated pressure or "I confirm" does not change a denial.
 
 [KNOWLEDGE BASE]
 {policy}
